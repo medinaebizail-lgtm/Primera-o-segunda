@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>¿Primera o Segunda?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+  /* Layout: una sola columna para el celular; tarjeta de situación arriba, dos botones grandes abajo.
+     Un solo look oscuro a propósito (igual que la presentación), con letra legible para baja visión. */
+  :root {
+    --navy: #0F1E38;
+    --card: #1B2F55;
+    --card-2: #24406F;
+    --cream: #F7F0E1;
+    --muted: #C9D3E3;
+    --gold: #F4B942;
+    --sky: #8FC8F2;
+    --ok: #7FD1B9;
+    --no: #F2A07B;
+    --font: "Atkinson Hyperlegible", Arial, "Helvetica Neue", sans-serif;
+    color-scheme: dark;
+  }
+  [hidden] { display: none !important; }
+  html, body { background: var(--navy); color: var(--cream); }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    font-size: 18px;
+    line-height: 1.45;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 32px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  header { display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow { color: var(--sky); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  h1 { margin: 0; font-size: 2.1rem; line-height: 1.1; color: var(--cream); text-wrap: balance; }
+  .lead { margin: 0; color: var(--muted); font-size: 1.05rem; }
+  .lead strong { color: var(--gold); }
+
+  .progress { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.95rem; }
+  .dots { display: flex; gap: 8px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--card-2); border: 2px solid var(--card-2); }
+  .dot.now { border-color: var(--gold); }
+  .dot.ok { background: var(--ok); border-color: var(--ok); }
+  .dot.no { background: var(--no); border-color: var(--no); }
+
+  .situation { background: var(--card); border-radius: 18px; padding: 20px; display: flex; gap: 14px; align-items: flex-start; min-width: 0; }
+  .letter { flex: none; width: 48px; height: 48px; border-radius: 50%; background: var(--gold); color: var(--navy); font-weight: 700; font-size: 1.4rem; display: grid; place-items: center; }
+  .situation p { margin: 0; font-size: 1.35rem; line-height: 1.35; min-width: 0; }
+
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .choice {
+    font: inherit; font-weight: 700; font-size: 1.1rem; color: var(--navy); background: var(--gold);
+    border: 3px solid var(--gold); border-radius: 16px; min-height: 92px; padding: 12px 10px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center;
+  }
+  .choice small { font-weight: 400; font-size: 0.9rem; }
+  .choice:hover { filter: brightness(1.06); }
+  .choice:focus-visible, .btn:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+  .choice[disabled] { cursor: default; background: var(--card-2); border-color: var(--card-2); color: var(--muted); }
+  .choice.right { background: var(--ok); border-color: var(--ok); color: var(--navy); }
+  .choice.picked-wrong { background: var(--card-2); border-color: var(--no); color: var(--cream); }
+
+  .feedback { border-radius: 16px; padding: 16px 18px; background: var(--card-2); display: flex; flex-direction: column; gap: 6px; }
+  .feedback .verdict { font-weight: 700; font-size: 1.25rem; }
+  .feedback.ok .verdict { color: var(--ok); }
+  .feedback.no .verdict { color: var(--no); }
+  .feedback p { margin: 0; }
+
+  .btn { font: inherit; font-weight: 700; font-size: 1.1rem; border-radius: 14px; padding: 14px 18px; cursor: pointer; border: 3px solid var(--sky); background: transparent; color: var(--cream); min-height: 56px; }
+  .btn.primary { background: var(--sky); color: var(--navy); }
+
+  .result { background: var(--card); border-radius: 18px; padding: 22px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .score { font-size: 3.2rem; font-weight: 700; color: var(--gold); line-height: 1; font-variant-numeric: tabular-nums; }
+  .result h2 { margin: 0; font-size: 1.5rem; }
+  .result ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .result li { display: flex; gap: 10px; align-items: flex-start; }
+  .tag { flex: none; font-weight: 700; font-size: 0.9rem; padding: 3px 10px; border-radius: 999px; background: var(--gold); color: var(--navy); }
+  .lesson { color: var(--muted); }
+  .lesson strong { color: var(--cream); }
+
+  footer { color: var(--muted); font-size: 0.85rem; }
+  @media (max-width: 360px) { .choices { grid-template-columns: 1fr; } h1 { font-size: 1.8rem; } }
+  @media (prefers-reduced-motion: no-preference) { .feedback, .result { animation: rise .25s ease-out; } }
+  @keyframes rise { from { transform: translateY(6px); } to { transform: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">IOMO 611 · Historia de la PIO</span>
+    <h1>¿Primera o Segunda?</h1>
+    <p class="lead">Lee cada situación y toca en qué Guerra Mundial ocurrió. <strong>Meta: 3 de 4.</strong></p>
+  </header>
+
+  <section id="quiz" aria-label="Actividad">
+    <div class="wrap" style="padding:0">
+      <div class="progress">
+        <span id="count">Situación 1 de 4</span>
+        <div class="dots" id="dots" aria-hidden="true"></div>
+      </div>
+      <div class="situation">
+        <div class="letter" id="letter">A</div>
+        <p id="text">Se crea una prueba con dibujos para reclutas que no sabían leer.</p>
+      </div>
+      <div class="choices">
+        <button class="choice" id="c1" type="button" data-war="1">1.ª Guerra<small>1917–1918</small></button>
+        <button class="choice" id="c2" type="button" data-war="2">2.ª Guerra<small>1941–1945</small></button>
+      </div>
+      <div class="feedback" id="feedback" hidden aria-live="polite">
+        <span class="verdict" id="verdict"></span>
+        <p id="why"></p>
+      </div>
+      <button class="btn primary" id="next" type="button" hidden>Siguiente</button>
+    </div>
+  </section>
+
+  <section class="result" id="result" hidden aria-live="polite">
+    <div class="score" id="score">0 de 4</div>
+    <h2 id="goal"></h2>
+    <ul id="summary"></ul>
+    <p class="lesson"><strong>La lección:</strong> la Primera Guerra formó la profesión y la Segunda la refinó (Muchinsky y Howes, 2019).</p>
+    <button class="btn" id="again" type="button">Intentar de nuevo</button>
+  </section>
+
+  <footer>Fuentes: Muchinsky, P. M., y Howes, S. S. (2019). <em>Psychology applied to work</em> (12.ª ed.), cap. 1.</footer>
+</div>
+
+<script>
+  const Q = [
+    { l: "A", t: "Se crea una prueba con dibujos para reclutas que no sabían leer.", war: 1, name: "Army Beta",
+      why: "Es el Army Beta. Cerca del 30% de los reclutas no sabía leer, así que la prueba usaba dibujos y gráficas." },
+    { l: "B", t: "El ejército busca primero a los psicólogos y clasifica a 12 millones de soldados.", war: 2, name: "AGCT",
+      why: "Es el AGCT. En la Segunda Guerra, el ejército buscó a los psicólogos desde el principio." },
+    { l: "C", t: "Candidatos tratan de armar un cubo con “ayudantes” que los sabotean.", war: 2, name: "El cubo de la OSS",
+      why: "Son las pruebas situacionales de la OSS. No se medía el cubo, sino la reacción al estrés y la frustración." },
+    { l: "D", t: "Nace el Journal of Applied Psychology.", war: 1, name: "Journal of Applied Psychology",
+      why: "Nació en 1917, durante la Primera Guerra. Es la revista más antigua de la PIO." },
+  ];
+  const $ = (id) => document.getElementById(id);
+  let i = 0, answers = [];
+
+  function dots() {
+    $("dots").innerHTML = Q.map((_, k) => {
+      const a = answers[k];
+      const cls = a === undefined ? (k === i ? "now" : "") : (a ? "ok" : "no");
+      return `<span class="dot ${cls}"></span>`;
+    }).join("");
+  }
+  function show() {
+    const q = Q[i];
+    $("count").textContent = `Situación ${i + 1} de ${Q.length}`;
+    $("letter").textContent = q.l;
+    $("text").textContent = q.t;
+    for (const b of [$("c1"), $("c2")]) { b.disabled = false; b.className = "choice"; }
+    $("feedback").hidden = true; $("next").hidden = true;
+    dots();
+  }
+  function pick(war) {
+    const q = Q[i], ok = war === q.war;
+    answers[i] = ok;
+    for (const b of [$("c1"), $("c2")]) {
+      b.disabled = true;
+      const w = Number(b.dataset.war);
+      if (w === q.war) b.classList.add("right");
+      else if (w === war) b.classList.add("picked-wrong");
+    }
+    $("feedback").className = "feedback " + (ok ? "ok" : "no");
+    $("verdict").textContent = ok ? "¡Correcto!" : `Fue en la ${q.war === 1 ? "Primera" : "Segunda"} Guerra.`;
+    $("why").textContent = q.why;
+    $("feedback").hidden = false;
+    $("next").textContent = i < Q.length - 1 ? "Siguiente" : "Ver mi resultado";
+    $("next").hidden = false;
+    dots();
+    $("next").focus({ preventScroll: true });
+  }
+  function finish() {
+    const n = answers.filter(Boolean).length;
+    $("quiz").hidden = true;
+    $("score").textContent = `${n} de ${Q.length}`;
+    $("goal").textContent = n >= 3 ? "¡Lograste la meta!" : "Casi. Repasa las respuestas:";
+    $("summary").innerHTML = Q.map((q, k) =>
+      `<li><span class="tag">${q.war === 1 ? "1.ª" : "2.ª"}</span><span>${answers[k] ? "✓" : "✗"} ${q.l}. ${q.name}</span></li>`).join("");
+    $("result").hidden = false;
+  }
+  $("c1").addEventListener("click", () => pick(1));
+  $("c2").addEventListener("click", () => pick(2));
+  $("next").addEventListener("click", () => { if (i < Q.length - 1) { i++; show(); } else finish(); });
+  $("again").addEventListener("click", () => { i = 0; answers = []; $("result").hidden = true; $("quiz").hidden = false; show(); });
+  show();
+</script>
+
+</body>
+</html>
